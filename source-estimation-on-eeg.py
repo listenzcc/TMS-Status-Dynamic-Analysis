@@ -158,44 +158,46 @@ for src in tqdm(set_files, 'Main loop'):
     npy_fpath.parent.mkdir(exist_ok=True, parents=True)
 
     if npy_fpath.is_file():
+        logger.info(f'File already exists, {npy_fpath=}')
         continue
 
-    epochs = read_eeg_mat_to_epochs(src)
-
-    # Prevent Customized Reference in EEG since it is not allowed in inverse solution.
-    epochs.set_eeg_reference('average', projection=True)
-
-    # Source estimation
-    stcs = source_estimation(epochs)
-
-    # Make parc
-    fname = 'aparc_sub.json'
-    fpath = OUTPUT_DIR / fname
     try:
-        labels_pars_df = pd.read_json(fpath)
-        logger.info(f'Read parc df from {fpath=}')
-    except:
+        epochs = read_eeg_mat_to_epochs(src)
+
+        # Prevent Customized Reference in EEG since it is not allowed in inverse solution.
+        epochs.set_eeg_reference('average', projection=True)
+
+        # Source estimation
+        stcs = source_estimation(epochs)
+
+        # Make parc
+        fname = 'aparc_sub.json'
+        fpath = OUTPUT_DIR / fname
         parc = 'aparc_sub'
         labels_parc = mne.read_labels_from_annot(
             'fsaverage', parc=parc, subjects_dir=subjects_dir)
         labels_parc_df = pd.DataFrame([(e.name, e)
                                        for e in labels_parc], columns=['name', 'label'])
         labels_parc_df.set_index('name', inplace=True)
-        labels_parc_df.to_json(fpath)
-        logger.info(f'Write parc df to {fpath=}')
-    labels_parc_df
+        if not fpath.is_file():
+            labels_parc_df.to_json(fpath)
+            logger.info(f'Write parc df to {fpath=}')
 
-    # Fetch data
-    array = []
-    for i, row in tqdm(labels_parc_df.iterrows(), 'Parc loop'):
-        label = row['label']
-        data = np.array([np.mean(stc.in_label(label).data, axis=0)
-                        for stc in stcs])
-        array.append(data)
+        # Fetch data
+        array = []
+        for i, row in tqdm(labels_parc_df.iterrows(), 'Parc loop'):
+            label = row['label']
+            data = np.array([np.mean(stc.in_label(label).data, axis=0)
+                            for stc in stcs])
+            array.append(data)
 
-    data = np.array(array)
-    data.dump(npy_fpath)
-    logger.info(f'Write stc average data to {npy_fpath=}')
+        data = np.array(array)
+        data.dump(npy_fpath)
+        logger.info(f'Write stc average data to {npy_fpath=}')
+
+    except Exception as err:
+        logger.error(err)
+        logger.error(f'Failed saving: {npy_fpath=}')
 
 
 # %%

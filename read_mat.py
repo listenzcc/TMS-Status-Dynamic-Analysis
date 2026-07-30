@@ -52,3 +52,9 @@ plt.imshow(mat['MSClass'])
 
 # %% ---- 2026-06-10 ------------------------
 # Pending
+values = mat['MSClass']
+print(f'{values.shape=}, {np.unique(values)=}')
+
+# %%
+
+# %%

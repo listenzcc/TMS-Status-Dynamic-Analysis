@@ -26,7 +26,8 @@ def read_cls_mat(src: Path):
 
     # cls shape is (n_times, n_trials)
     # values are 0, 1, 2, 3, 4
-    cls = mat['MSClass']
+    # Convert into (n_trials, n_times)
+    cls = mat['MSClass'].transpose([1, 0])
 
     return cls
 

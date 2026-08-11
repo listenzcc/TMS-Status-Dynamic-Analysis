@@ -41,7 +41,7 @@ FS_DIR = fetch_fsaverage()
 SUBJECTS_DIR = Path(FS_DIR).parent.as_posix()
 
 # %%
-vertex_value_files = sorted(Path('./data/20484').glob('*.npy'))
+vertex_value_files = sorted(Path('./data/20484-sLORETA').glob('*.npy'))
 logger.info(f'{len(vertex_value_files)=}')
 
 
@@ -182,7 +182,7 @@ _stim, _stage, _cls = 'T100', 'post', '1'
 
 for pair in query_pairs:
     stim, stage, cls = pair
-    if not all([stim == _stim, stage == _stage]):
+    if not all([stim in ['T100'], stage in ['pre', 'post']]):
         continue
 
     query = [f'stim=="{stim}"', f'stage=="{stage}"', f'cls=="{cls}"']

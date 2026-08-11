@@ -13,7 +13,7 @@ SUBJECTS_DIR = Path(FS_DIR).parent.as_posix()
 # %%
 
 
-def source_estimation(epochs, method='MNE', snr=3.0, loose=0.2, depth=0.8, baseline=(None, 0.0), use_eye_cov=True):
+def source_estimation(epochs, method='MNE', pick_ori=None, snr=3.0, loose=0.2, depth=0.8, baseline=(None, 0.0), use_eye_cov=True):
     """Compute a source estimate for an MNE Evoked using fsaverage BEM."""
 
     trans = 'fsaverage'
@@ -81,7 +81,7 @@ def source_estimation(epochs, method='MNE', snr=3.0, loose=0.2, depth=0.8, basel
         inverse_operator,
         lambda2=lambda2,
         method=method,
-        pick_ori=None,
+        pick_ori=pick_ori,
     )
 
     return stcs

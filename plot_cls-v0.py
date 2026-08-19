@@ -1,5 +1,5 @@
 """
-File: plot_cls_merge_pre_post.py
+File: plot_cls.py
 Author: Chuncheng Zhang
 Date: 2026-07-31
 Copyright & Email: chuncheng.zhang@ia.ac.cn
@@ -41,18 +41,12 @@ FS_DIR = fetch_fsaverage()
 SUBJECTS_DIR = Path(FS_DIR).parent.as_posix()
 
 # %%
-vertex_value_files = sorted(
-    Path('./data/20484-sLORETA-baseline').glob('*.npy'))
+vertex_value_files = sorted(Path('./data/20484-sLORETA').glob('*.npy'))
 logger.info(f'{len(vertex_value_files)=}')
 
-# %%
-OUTPUT_DIR = Path('./output-sLORETA-baseline/')
-OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
 # %% ---- 2026-07-31 ------------------------
 # Function and class
-
-
 def parse_fpath(path: Path):
     stem = path.stem
     stim, stage, sub, cls = stem.replace('_', '-').split('-')
@@ -130,13 +124,19 @@ def visualize_single_vector_stc(data_vector, title='title', subject='fsaverage',
         subject=subject
     )
 
-    # assume the values are in N(0, 1)
-    # clim = dict(kind='value', lims=[0.5, 3, 5])
-    # alpha = 0.8
-    clim = dict(kind='value', lims=[1, 2, 4])
-    alpha = 1.0
+    # 如果 clim 未指定，自动计算
+    # if clim is None:
+    #     abs_max = np.abs(data_vector).max()
+    #     if abs_max > 0:
+    #         clim = dict(kind='value', lims=[
+    #                     abs_max*0.3, abs_max*0.6, abs_max*0.9])
+    #     else:
+    #         clim = dict(kind='value', lims=[0.1, 0.2, 0.3])
 
-    brain_kwargs = dict(alpha=alpha, background="white", cortex="low_contrast")
+    # assume the values are in N(0, 1)
+    clim = dict(kind='value', lims=[0.5, 3, 5])
+
+    brain_kwargs = dict(alpha=0.8, background="white", cortex="low_contrast")
     brain = stc.plot(
         initial_time=0,
         # hemi="split",
@@ -153,8 +153,6 @@ def visualize_single_vector_stc(data_vector, title='title', subject='fsaverage',
     )
     brain.add_text(0.5, 0.9, title, 'title', justification='center')
 
-    brain.save_image(OUTPUT_DIR / f'{title}.png')
-
     return stc, brain
 
 
@@ -165,7 +163,7 @@ print(table.head())
 
 # %%
 df = table.copy()
-group = df.groupby(['stim', 'cls'])
+group = df.groupby(['stim', 'stage', 'cls'])
 print(group.count())
 query_pairs = sorted(group.groups.keys())
 print(query_pairs)
@@ -180,14 +178,14 @@ if False:
 
 # %% ---- 2026-07-31 ------------------------
 # Pending
-_stim, _cls = 'T100', '2'
+_stim, _stage, _cls = 'T100', 'post', '1'
 
 for pair in query_pairs:
-    stim, cls = pair
-    # if not all([stim in ['T100'], cls in ['2']]):
-    #     continue
+    stim, stage, cls = pair
+    if not all([stim in ['T100'], stage in ['pre', 'post']]):
+        continue
 
-    query = [f'stim=="{stim}"', f'cls=="{cls}"']
+    query = [f'stim=="{stim}"', f'stage=="{stage}"', f'cls=="{cls}"']
 
     df = table.copy()
     df = df.query(' & '.join(query))

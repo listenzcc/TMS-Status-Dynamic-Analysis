@@ -41,12 +41,18 @@ FS_DIR = fetch_fsaverage()
 SUBJECTS_DIR = Path(FS_DIR).parent.as_posix()
 
 # %%
-vertex_value_files = sorted(Path('./data/20484-sLORETA').glob('*.npy'))
+vertex_value_files = sorted(
+    Path('./data/20484-sLORETA-baseline').glob('*.npy'))
 logger.info(f'{len(vertex_value_files)=}')
 
+# %%
+OUTPUT_DIR = Path('./output-sLORETA-baseline/')
+OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
 # %% ---- 2026-07-31 ------------------------
 # Function and class
+
+
 def parse_fpath(path: Path):
     stem = path.stem
     stim, stage, sub, cls = stem.replace('_', '-').split('-')
@@ -147,9 +153,7 @@ def visualize_single_vector_stc(data_vector, title='title', subject='fsaverage',
     )
     brain.add_text(0.5, 0.9, title, 'title', justification='center')
 
-    output_dir = Path('./output/')
-    output_dir.mkdir(exist_ok=True, parents=True)
-    brain.save_image(output_dir / f'{title}.png')
+    brain.save_image(OUTPUT_DIR / f'{title}.png')
 
     return stc, brain
 

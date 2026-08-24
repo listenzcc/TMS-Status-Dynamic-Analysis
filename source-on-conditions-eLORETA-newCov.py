@@ -24,7 +24,7 @@ from pathlib import Path
 from tqdm.auto import tqdm
 
 from util.io import read_cls_mat, read_eeg_mat
-from util.source_estimation import source_estimation
+from util.source_estimation_newCov import source_estimation
 
 # %%
 # Folder with EEG mat files
@@ -34,7 +34,7 @@ EEG_FOLDER = Path('./data/eeg-mat')
 CLS_FOLDER = Path('./data/MSClass_labels')
 
 # Output folder
-OUTPUT_FOLDER = Path('./data/20484-sLORETA-baseline/')
+OUTPUT_FOLDER = Path('./data/20484-eLORETA-newCov/')
 
 # %% ---- 2026-07-30 ------------------------
 # Function and class
@@ -83,8 +83,7 @@ for pair in tqdm(pairs):
     epochs.set_eeg_reference('average', projection=True)
 
     # Source estimation
-    stcs = source_estimation(
-        epochs, 'sLORETA', baseline=(0, 0.2), use_eye_cov=False)
+    stcs = source_estimation(epochs, 'eLORETA')
 
     # Print
     print(epochs, cls_values.shape)

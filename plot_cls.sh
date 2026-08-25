@@ -7,5 +7,5 @@ script=plot_cls.py
 
 # python $script --method eLORETA
 # python $script --method sLORETA
-python $script --method eLORETA-filter
+# python $script --method eLORETA-filter
 python $script --method eLORETA-newCov

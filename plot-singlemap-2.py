@@ -1,28 +1,56 @@
-# %%
+"""
+File: plot-singlemap.py
+Author: Chuncheng Zhang
+Date: 2026-09-01
+Copyright & Email: chuncheng.zhang@ia.ac.cn
+
+Purpose:
+    Plot the single map evoked.
+
+Functions:
+    1. Requirements and constants
+    2. Function and class
+    3. Play ground
+    4. Pending
+    5. Pending
+"""
+
+
+# %% ---- 2026-09-01 ------------------------
+# Requirements and constants
+from itertools import product
 import mne
-import mat73
 import numpy as np
 from mne.datasets import fetch_fsaverage
-from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs, apply_inverse
+from mne.minimum_norm import make_inverse_operator, apply_inverse
 from util.easy_imports import *
 
 # %%
-DATA_DIR = Path('./data/eeg-mat')
 FS_DIR = fetch_fsaverage()
 
-# %%
-set_files = sorted(DATA_DIR.rglob('*.mat'))
-logger.info(f'Found .set files: {len(set_files)=}')
+methods = ['MNE', 'dSPM', 'sLORETA', 'eLORETA']
+method = 'MNE'
+# method = 'sLORETA'
 
-# %%
-ch_names = [e.split('\t')[1]
-            for e in open(DATA_DIR / 'chan_labels.txt').read().split('\n') if '\t' in e]
-times = [float(e) / 1000 for e in open(DATA_DIR /
-                                       'times_ms.txt').read().split()]
-sfreq = 1000  # Hz
+OUTPUT_DIR = Path(f'./output/singlemap-{method}')
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+CHAN_LABELS_FILE = './data/singlemap/chanloc.txt'
+CH_NAMES = [e.split('\'')[1]
+            for e in open(CHAN_LABELS_FILE).read().split('\n')]
+print(CH_NAMES)
+
+SFREQ = 1000  # Hz
+
+montage = mne.channels.make_standard_montage('standard_1020')
+
+# %% ---- 2026-09-01 ------------------------
+# Function and class
 
 
 def create_montage():
+
+    info = mne.create_info(ch_names=CH_NAMES, sfreq=SFREQ, ch_types='eeg')
     # 从文本数据中提取电极信息
     # 数据格式: 名称, [], theta, radius, x, y, z, phi, radius_2d, radius_3d, 序号, 'average'
 
@@ -84,32 +112,37 @@ def create_montage():
     return montage
 
 
-def read_eeg_mat_to_epochs(src):
-    logger.info(f'Read {src=}')
-    mat = mat73.loadmat(src)
+def read_eeg_map(condition='T80', state=0):
+    """
+    Read EEG map data for a specific condition and state.
 
-    # raw_data shape is (n_channels, n_times, n_epochs)
-    raw_data = mat['data']
-    # data shape convert into (n_epochs, n_channels, n_times)
-    data = raw_data.transpose([2, 0, 1])
+    Parameters:
+    - condition: str, the condition name (default is 'T80')
+    - state: int, the state index (default is 0)
 
-    info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types='eeg')
-    events = np.array([[i, 0, 1] for i in range(len(data))])  # 全部标为事件1
-    epochs = mne.EpochsArray(data, info, events=events, tmin=times[0])
+    Returns:
+    - eeg_map: np.ndarray, the EEG map data
+    """
+    # Construct the file path based on the condition and state
+    fname = f'./data/singlemap/{condition}.txt'
+    values = np.loadtxt(fname)[:, state]
 
-    # 设置标准 10-20 系统蒙太奇
-    montage = mne.channels.make_standard_montage('standard_1020')
-    epochs.set_montage(montage)
-
-    return epochs
+    return values[:, np.newaxis]  # Ensure the output is a 2D array
 
 
-def source_estimation(evoked, method='MNE'):
+def create_evoked(x, info):
+    evoked = mne.EvokedArray(x, info=info, tmin=0.0)
+    return evoked
+
+
+def source_estimation(evoked, method):
     """Compute a source estimate for an MNE Evoked using fsaverage BEM."""
     snr = 3.0
+    # snr = 30.0
     loose = 0.2
     depth = 0.8
-    pick_ori = None
+    # pick_ori = None
+    pick_ori = 'vector'
 
     trans = 'fsaverage'
     src_fname = Path(FS_DIR, 'bem', 'fsaverage-ico-5-src.fif')
@@ -164,34 +197,52 @@ def source_estimation(evoked, method='MNE'):
     return stc
 
 
-# %%
-src = set_files[0]
-logger.debug(f'{src=}')
+# %% ---- 2026-09-01 ------------------------
+# Play ground
+for condition, state in product(['T80', 'T100', 'T120'], [0, 1, 2, 3]):
+    title = f'{condition}-{state}'
+    print(f'{montage=}')
+    values = read_eeg_map(condition=condition, state=state)
+    print(f'{values.shape=}')
+    print(f'{values=}')
+    evoked = create_evoked(values, info=mne.create_info(
+        ch_names=CH_NAMES, sfreq=SFREQ, ch_types='eeg'))
+    evoked.set_montage(montage)
+    evoked.set_eeg_reference('average', projection=True)
+    print(f'{evoked=}')
 
-epochs = read_eeg_mat_to_epochs(src)
-epochs.set_eeg_reference('average', projection=True)
+    fig = evoked.plot_topomap(
+        times=0.0, ch_type='eeg', size=6, show_names=True)
+    # fig.save(OUTPUT_DIR / f'{title}-topomap.png')
+    plt.savefig(OUTPUT_DIR / f'{title}-topomap.svg')
+    plt.close(fig)
 
-n_trials, n_channels, n_times = epochs.get_data().shape
-print(n_trials, n_channels, n_times)
+    fname = OUTPUT_DIR / f'{title}-brain.png'
+    if fname.exists():
+        continue
+    stc = source_estimation(evoked, method=method)
+    print(stc)
 
-# %%
-x = np.random.randn(n_channels, 1)  # (n_channels, n_times)
-evoked = mne.EvokedArray(x, info=epochs.info, tmin=0.0)
-evoked
+    alpha = 1.0
+    brain_kwargs = dict(alpha=alpha, background="white", cortex="low_contrast")
+    brain = stc.plot(
+        hemi="both",
+        views=['dorsal'],
+        # surface='pial',
+        # surface='inflated',
+        transparent=True,
+        brain_kwargs=brain_kwargs)
 
-stc = source_estimation(evoked)
-print(stc)
+    brain.add_text(0.5, 0.9, title, 'title', justification='center')
+    brain.save_image(fname)
+    brain.close()
 
-alpha = 1.0
-brain_kwargs = dict(alpha=alpha, background="white", cortex="low_contrast")
-stc.plot(
-    hemi="both",
-    views=['dorsal'],
-    # surface='pial',
-    surface='inflated',
-    transparent=True,
-    brain_kwargs=brain_kwargs)
 
-input()
+# %% ---- 2026-09-01 ------------------------
+# Pending
 
-# %%
+# input()
+
+
+# %% ---- 2026-09-01 ------------------------
+# Pending

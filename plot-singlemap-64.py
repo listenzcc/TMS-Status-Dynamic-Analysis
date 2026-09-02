@@ -30,7 +30,6 @@ FS_DIR = fetch_fsaverage()
 
 methods = ['MNE', 'dSPM', 'sLORETA', 'eLORETA']
 method = 'MNE'
-method = 'sLORETA'
 
 OUTPUT_DIR = Path(f'./output/singlemap-{method}-64')
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -78,7 +77,7 @@ def source_estimation(evoked, method):
     loose = 0.2
     depth = 0.8
     pick_ori = None
-    # pick_ori = 'vector'
+    pick_ori = 'normal'
 
     trans = 'fsaverage'
     src_fname = Path(FS_DIR, 'bem', 'fsaverage-ico-5-src.fif')
@@ -295,7 +294,7 @@ def remove_duplicate_montage_positions(montage, tol=1e-6):
 
 # %% ---- 2026-09-01 ------------------------
 # Play ground
-for condition, state in product(['T80', 'T100', 'T120'], [0, 1, 2, 3]):
+for condition, state in product(['T80', 'T100', 'T120', 'Sham'], [0, 1, 2, 3]):
     title = f'{condition}-{state}'
     print(f'{montage=}')
     values = read_eeg_map(condition=condition, state=state)
@@ -315,15 +314,21 @@ for condition, state in product(['T80', 'T100', 'T120'], [0, 1, 2, 3]):
 
     fig = evoked.plot_topomap(
         times=0.0, ch_type='eeg', size=6, show_names=True)
-    # fig.save(OUTPUT_DIR / f'{title}-topomap.png')
     plt.savefig(OUTPUT_DIR / f'{title}-topomap.svg')
     plt.close(fig)
+
+    fname = OUTPUT_DIR / f'{title}-stc'
+    try:
+        stc = mne.read_source_estimate(fname)
+        print(f"Loaded existing STC from {fname}")
+    except:
+        stc = source_estimation(evoked, method=method)
+        stc.save(fname, overwrite=True)
+        print(stc)
 
     fname = OUTPUT_DIR / f'{title}-brain.png'
     if fname.exists():
         continue
-    stc = source_estimation(evoked, method=method)
-    print(stc)
 
     alpha = 1.0
     brain_kwargs = dict(alpha=alpha, background="white", cortex="low_contrast")

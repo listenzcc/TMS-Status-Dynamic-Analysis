@@ -4,7 +4,8 @@ source ~/.zshrc
 conda activate python3.12
 
 script=plot-stc-singlemap.py
-method=MNE-64
+method=MNE
+method=sLORETA
 conditions=(T80 T100 T120 Sham)
 states=(0 1 2 3)
 

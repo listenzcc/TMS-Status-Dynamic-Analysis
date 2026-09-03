@@ -57,22 +57,38 @@ stc.data = stc.data / np.std(stc.data)  # Normalize the data
 alpha = 1.0
 clim = dict(kind='value', lims=[1, 1.5, 2])
 brain_kwargs = dict(alpha=alpha, background="white", cortex="low_contrast")
-brain = stc.plot(
-    hemi="both",
+
+single_view_kwargs = dict(
     views=['dorsal'],
+    size=(720, 540),
+)
+
+split_view_kwargs = dict(
+    views=['dorsal', 'ventral'],
+    view_layout='horizontal',
+    size=(1440, 540),
+)
+
+brain = stc.plot(
     clim=clim,
+    hemi="both",
     surface='pial',
     # surface='inflated',
     transparent=True,
-    brain_kwargs=brain_kwargs)
+    brain_kwargs=brain_kwargs,
+    **split_view_kwargs
+)
 
-brain.add_text(0.5, 0.9, title, 'title', justification='center')
+brain.add_text(0.0, 0.9, title, 'title', justification='left')
 
+# According to the flag to show the image or save it directly
 if PLOT_FLAG:
+    # Wait to show
+    input("Press Enter to continue...")
+else:
+    # Just save it
     brain.save_image(fname.with_suffix('.jpg'))
     brain.close()
-else:
-    input("Press Enter to continue...")
 
 
 # %% ---- 2026-09-02 ------------------------

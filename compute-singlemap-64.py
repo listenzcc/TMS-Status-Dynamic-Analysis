@@ -1,11 +1,11 @@
 """
-File: plot-singlemap.py
+File: compute-singlemap.py
 Author: Chuncheng Zhang
 Date: 2026-09-01
 Copyright & Email: chuncheng.zhang@ia.ac.cn
 
 Purpose:
-    Plot the single map evoked.
+    Compute the single map evoked.
 
 Functions:
     1. Requirements and constants
@@ -294,7 +294,10 @@ def remove_duplicate_montage_positions(montage, tol=1e-6):
 
 # %% ---- 2026-09-01 ------------------------
 # Play ground
-for condition, state in product(['T80', 'T100', 'T120', 'Sham'], [0, 1, 2, 3]):
+for condition, state in product(
+    ['T80', 'T100', 'T120', 'Sham'],
+    [0, 1, 2, 3]
+):
     title = f'{condition}-{state}'
     print(f'{montage=}')
     values = read_eeg_map(condition=condition, state=state)
@@ -320,6 +323,7 @@ for condition, state in product(['T80', 'T100', 'T120', 'Sham'], [0, 1, 2, 3]):
     fname = OUTPUT_DIR / f'{title}-stc'
     try:
         stc = mne.read_source_estimate(fname)
+        stc.subject = 'fsaverage'
         print(f"Loaded existing STC from {fname}")
     except:
         stc = source_estimation(evoked, method=method)

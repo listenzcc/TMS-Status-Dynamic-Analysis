@@ -1,11 +1,11 @@
 """
-File: plot-singlemap.py
+File: compute-singlemap.py
 Author: Chuncheng Zhang
 Date: 2026-09-01
 Copyright & Email: chuncheng.zhang@ia.ac.cn
 
 Purpose:
-    Plot the single map evoked.
+    Compute the single map evoked.
 
 Functions:
     1. Requirements and constants
@@ -134,15 +134,17 @@ def source_estimation(evoked, method):
 # %% ---- 2026-09-01 ------------------------
 # Play ground
 for condition, state in product(
-        # ['T80', 'T100', 'T120', 'Sham'],
-        ['Sham'],
-        [0, 1, 2, 3]):
+    ['T80', 'T100', 'T120', 'Sham'],
+    [0, 1, 2, 3]
+):
 
     title = f'{condition}-{state}'
     print(f'{montage=}')
     values = read_eeg_map(condition=condition, state=state)
     print(f'{values.shape=}')
     print(f'{values=}')
+
+    # Fake a evoked for the (34 x 1) values at single time point t=0.0
     evoked = create_evoked(values, info=mne.create_info(
         ch_names=CH_NAMES, sfreq=SFREQ, ch_types='eeg'))
     evoked.set_montage(montage)
@@ -158,6 +160,7 @@ for condition, state in product(
     fname = OUTPUT_DIR / f'{title}-stc'
     try:
         stc = mne.read_source_estimate(fname)
+        stc.subject = 'fsaverage'
         print(f"Loaded existing STC from {fname}")
     except:
         stc = source_estimation(evoked, method=method)

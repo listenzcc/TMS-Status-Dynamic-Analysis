@@ -55,7 +55,46 @@ stc.subject = 'fsaverage'
 stc.data = stc.data / np.std(stc.data)  # Normalize the data
 
 alpha = 1.0
-clim = dict(kind='value', lims=[1, 1.5, 2])
+clim = dict(kind='value', lims=[1, 1.5, 3])
+
+if CONDITION == 'T120' and STATE == 3:
+    clim = dict(kind='value', lims=[1, 1.5, 3])
+elif CONDITION == 'Sham' and STATE == 3:
+    clim = dict(kind='value', lims=[1, 1.5, 3])
+elif CONDITION == 'T80' and STATE == 3:
+    clim = dict(kind='value', lims=[1, 1.5, 3])
+elif CONDITION == 'T100' and STATE == 3:
+    clim = dict(kind='value', lims=[0.8, 1.5, 2])
+
+if CONDITION == 'T120' and STATE == 0:
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+elif CONDITION == 'Sham' and STATE == 0:
+    clim = dict(kind='value', lims=[0.8, 1, 2])
+elif CONDITION == 'T80' and STATE == 0:
+    # ?
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+elif CONDITION == 'T100' and STATE == 0:
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+
+if CONDITION == 'T120' and STATE == 1:
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+elif CONDITION == 'Sham' and STATE == 1:
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+elif CONDITION == 'T80' and STATE == 1:
+    clim = dict(kind='value', lims=[0.6, 0.8, 1.2])
+elif CONDITION == 'T100' and STATE == 1:
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+
+if CONDITION == 'T120' and STATE == 2:
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+elif CONDITION == 'Sham' and STATE == 2:
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+elif CONDITION == 'T80' and STATE == 2:
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+elif CONDITION == 'T100' and STATE == 2:
+    clim = dict(kind='value', lims=[1, 1.5, 2])
+
+
 brain_kwargs = dict(alpha=alpha, background="white", cortex="low_contrast")
 
 single_view_kwargs = dict(

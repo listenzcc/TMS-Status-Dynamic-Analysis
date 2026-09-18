@@ -514,65 +514,6 @@ def calculate_surrogate_err(
     )
 
 
-def calculate_surrogate_err_1(
-    original_seq,
-    word_to_class,
-    theoretical_proportions,
-    n=6,
-    n_surrogates=1000,
-    min_run=5,
-    seed=42,
-    already_preprocessed=False
-):
-    """
-    对原始微状态序列随机打乱顺序。
-
-    每次打乱后重新执行相同的预处理，
-    然后计算各熵类别的 ERR。
-    """
-
-    rng = np.random.default_rng(seed)
-
-    original_seq = list(original_seq)
-
-    surrogate_results = []
-
-    for _ in tqdm(range(n_surrogates), 'Permutation'):
-
-        # 随机打乱原始微状态标签
-        shuffled = rng.permutation(original_seq).tolist()
-
-        if already_preprocessed:
-            processed = shuffled
-        else:
-            processed = preprocess_sequence(
-                shuffled,
-                min_run=min_run
-            )
-
-        # 长度不足时跳过该次
-        if len(processed) < n:
-            continue
-
-        df = calculate_err(
-            processed,
-            word_to_class,
-            theoretical_proportions,
-            n=n
-        )
-
-        surrogate_results.append(
-            df["ERR"].to_numpy()
-        )
-
-    if len(surrogate_results) == 0:
-        raise ValueError(
-            "没有有效 surrogate，请检查序列长度和预处理参数。"
-        )
-
-    return np.array(surrogate_results)
-
-
 # =========================================================
 # 8. 主函数
 # =========================================================

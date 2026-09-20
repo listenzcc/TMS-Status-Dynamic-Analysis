@@ -38,9 +38,14 @@ display(df)
 group = df.groupby(['Class', 'tag'])
 print(group.mean(numeric_only=True))
 
-exit(0)
+group = df.groupby('tag')
+print(group.sum(numeric_only=True))
+
+# %%
+# exit(0)
 
 
+# %%
 # fig = plt.figure(figsize=(12, 6))
 # sns.boxenplot(df, x='Class', y='ERR', hue='tag')
 # plt.show()

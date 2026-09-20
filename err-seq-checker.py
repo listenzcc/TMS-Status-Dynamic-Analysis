@@ -1,4 +1,6 @@
 # %%
+
+from collections import Counter
 import mat73
 import numpy as np
 import argparse
@@ -7,7 +9,7 @@ import matplotlib.pyplot as plt
 from loguru import logger
 from pathlib import Path
 
-from util_err.tools import microsynt_err, STATES
+from util_err.tools import microsynt_err, STATES, extract_words
 
 # %%
 # =========================================================
@@ -84,19 +86,19 @@ results, results_chars, surrogate, processed, word_to_class = microsynt_err(
     seed=RANDOM_SEED
 )
 
-# print("预处理后序列：")
-# print("".join(processed))
+print(results)
+print(''.join(seq[:80]))
+print(''.join(processed[:80]))
 
-print("\nEntropy Representation Ratio：")
-print(results.to_string(index=False))
+print(Counter(processed))
 
-fpath = OUTPUT_DIR / 'results.json'
-results.to_json(fpath)
-logger.info(f'Saved into {fpath=}')
+# %%
+print([(''.join(k), v) for k, v in word_to_class.items()])
 
-fpath = OUTPUT_DIR / 'results_chars.json'
-results_chars.to_json(fpath)
-logger.info(f'Saved into {fpath=}')
+# %%
+words = extract_words(processed, n=WORD_SIZE)
+# print(words)
+# print([''.join(w) for w in words])
 
 # %%
 

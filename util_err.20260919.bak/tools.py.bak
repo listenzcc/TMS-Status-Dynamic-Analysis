@@ -187,42 +187,29 @@ def calculate_err(
         for word in words
     )
 
-    def _mk_chars(word):
-        unique = ''.join(sorted(set(word)))
-        cls = word_to_class[word]
-        return f'{unique}-{cls}'
-
-    chars_counts = Counter(
-        _mk_chars(word)
-        for word in words
-    )
-
     total_windows = len(words)
 
     results = []
 
-    '''
-    ERR = 1: 观测比例与理论比例一致
-    ERR > 1: 该类别相对理论值过度出现
-    ERR < 1: 该类别相对理论值不足
-    '''
-
     for cls in sorted(theoretical_proportions):
+
         real_count = class_counts.get(cls, 0)
+
         real_prop = real_count / total_windows
+
         theoretical_prop = theoretical_proportions[cls]
+
         err = real_prop / theoretical_prop
+
         results.append({
             "Class": cls,
             "Real_Count": real_count,
             "Real_Proportion": real_prop,
             "Theoretical_Proportion": theoretical_prop,
-            "ERR": err,
+            "ERR": err
         })
 
-    df = pd.DataFrame(results)
-
-    return df
+    return pd.DataFrame(results)
 
 
 # =========================================================
@@ -415,10 +402,6 @@ def calculate_surrogate_err(
         return_inverse=True
     )
 
-    print(labels)
-    print(f'{original_seq=}')
-    print(f'{encoded_seq=}')
-
     encoded_seq = encoded_seq.astype(
         np.int8 if len(labels) <= 127 else np.int16
     )
@@ -558,7 +541,6 @@ def microsynt_err(
         )
 
     print(f'{len(processed)=}')
-    # print(f'{processed=}')
 
     if len(processed) < n:
         raise ValueError(
@@ -578,41 +560,6 @@ def microsynt_err(
     )
 
     # print(f'{word_to_class=}')
-
-    words = extract_words(processed, n)
-
-    # 统计各类别的词频
-    class_counts = Counter(
-        word_to_class[word]
-        for word in words
-    )
-
-    def _mk_chars(word):
-        unique = ''.join(sorted(set(word)))
-        cls = word_to_class[word]
-        return f'{unique}-{cls}'
-
-    # 统计各类别的词频与Cls
-    chars_counts = Counter(
-        _mk_chars(word)
-        for word in words
-    )
-
-    # Generate results df
-    results = []
-
-    for k, v in chars_counts.items():
-        chars, cls = k.split('-')
-        cls = int(cls)
-        results.append({
-            'Chars': chars,
-            'Class': cls,
-            'Real_Count': v,
-            'Real_Proportion': v / class_counts[cls],
-        })
-
-    results_chars = pd.DataFrame(results)
-    print(results_chars)
 
     # 真实序列 ERR
     real_df = calculate_err(
@@ -646,4 +593,4 @@ def microsynt_err(
         (real_df["ERR"] > upper)
     )
 
-    return real_df, results_chars, surrogate_err, processed
+    return real_df, surrogate_err, processed

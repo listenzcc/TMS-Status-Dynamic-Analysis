@@ -13,7 +13,7 @@ from IPython.display import display
 DATA_DIR = Path('./output-err/data/MSClass_labels')
 
 # %%
-files = sorted(DATA_DIR.rglob('*.json'))
+files = sorted(DATA_DIR.rglob('*/results.json'))
 print(files)
 
 dct = defaultdict(list)
@@ -35,6 +35,12 @@ for key, value in json_files_dct.items():
 df = pd.concat(dfs)
 display(df)
 
+group = df.groupby(['Class', 'tag'])
+print(group.mean(numeric_only=True))
+
+exit(0)
+
+
 # fig = plt.figure(figsize=(12, 6))
 # sns.boxenplot(df, x='Class', y='ERR', hue='tag')
 # plt.show()
@@ -42,6 +48,7 @@ display(df)
 
 # %%
 fig, ax = plt.subplots(figsize=(12, 6))
+
 sns.boxenplot(data=df, x='Class', y='ERR', hue='tag', ax=ax)
 
 tags = df['tag'].unique()
@@ -51,19 +58,19 @@ total_width = 0.8
 width = total_width / n_tags
 offsets = {tag: (i - (n_tags - 1) / 2) * width for i, tag in enumerate(tags)}
 
-for i, cls in enumerate(classes):
-    for tag in tags:
-        subset = df[(df['Class'] == cls) & (df['tag'] == tag)]
-        if subset.empty:
-            continue
-        x_center = i + offsets[tag]
-        lower = subset['Surrogate_Lower'].values[0]
-        upper = subset['Surrogate_Upper'].values[0]
-        half_w = width * 0.35
+# for i, cls in enumerate(classes):
+#     for tag in tags:
+#         subset = df[(df['Class'] == cls) & (df['tag'] == tag)]
+#         if subset.empty:
+#             continue
+#         x_center = i + offsets[tag]
+#         lower = subset['Surrogate_Lower'].values[0]
+#         upper = subset['Surrogate_Upper'].values[0]
+#         half_w = width * 0.35
 
-        ax.fill_between([x_center - half_w, x_center + half_w],
-                        lower, upper,
-                        color='gray', alpha=0.4, zorder=4)
+#         ax.fill_between([x_center - half_w, x_center + half_w],
+#                         lower, upper,
+#                         color='gray', alpha=0.4, zorder=4)
 
 plt.tight_layout()
 plt.show()

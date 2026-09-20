@@ -212,12 +212,14 @@ def calculate_err(
         real_prop = real_count / total_windows
         theoretical_prop = theoretical_proportions[cls]
         err = real_prop / theoretical_prop
+        err_1 = np.log2(real_prop) / np.log2(theoretical_prop)
         results.append({
             "Class": cls,
             "Real_Count": real_count,
             "Real_Proportion": real_prop,
             "Theoretical_Proportion": theoretical_prop,
             "ERR": err,
+            "ERR1": err_1
         })
 
     df = pd.DataFrame(results)
@@ -414,10 +416,6 @@ def calculate_surrogate_err(
         original_seq,
         return_inverse=True
     )
-
-    print(labels)
-    print(f'{original_seq=}')
-    print(f'{encoded_seq=}')
 
     encoded_seq = encoded_seq.astype(
         np.int8 if len(labels) <= 127 else np.int16

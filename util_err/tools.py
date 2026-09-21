@@ -68,8 +68,8 @@ def extract_words(seq, n=6):
         return []
 
     return [
-        # tuple(seq[i:i+n])
-        tuple(sorted(set(seq[i:i+n])))
+        tuple(seq[i:i+n])
+        # tuple(sorted(set(seq[i:i+n])))
         for i in range(len(seq) - n + 1)
     ]
 
@@ -109,15 +109,13 @@ def build_theoretical_dictionary(states, n=6):
 
     dictionary = []
 
-    for m in range(2, n):
-        for word in product(states, repeat=m):
-            if all(
-                word[i] != word[i-1]
-                for i in range(1, m)
-            ):
-                _w = tuple(sorted(set(word)))
-                if _w not in dictionary:
-                    dictionary.append(_w)
+    for word in product(states, repeat=n):
+        if all(
+            word[i] != word[i-1]
+            for i in range(1, n)
+        ):
+            _w = word
+            dictionary.append(_w)
 
     # 按熵值归类
     entropy_values = np.array([
@@ -195,11 +193,6 @@ def calculate_err(
         unique = ''.join(sorted(set(word)))
         cls = word_to_class[word]
         return f'{unique}-{cls}'
-
-    chars_counts = Counter(
-        _mk_chars(word)
-        for word in words
-    )
 
     total_windows = len(words)
 
@@ -616,8 +609,6 @@ def microsynt_err(
         })
 
     results_chars = pd.DataFrame(results)
-    print('==== results_chars ====')
-    print(results_chars)
 
     # 真实序列 ERR
     real_df = calculate_err(

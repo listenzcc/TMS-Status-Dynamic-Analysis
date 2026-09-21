@@ -1,14 +1,14 @@
 # %%
-from itertools import combinations
-from scipy import stats
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import pandas as pd
 
 from rich import print
+from scipy import stats
 from loguru import logger
 from pathlib import Path
+from itertools import combinations
 from collections import defaultdict
 from IPython.display import display
 
@@ -17,7 +17,7 @@ DATA_DIR = Path('./output-err/data/MSClass_labels')
 
 # %%
 files = sorted(DATA_DIR.rglob('*/results_chars.json'))
-print(files)
+print(files[:8])
 
 dct = defaultdict(list)
 for p in files:
@@ -157,10 +157,10 @@ pd.set_option('display.max_rows', 200)
 pd.set_option('display.width', 200)
 
 print('===== 每个 tag 的整体检验 (ANOVA + Kruskal-Wallis) =====')
-print(anova_df.to_string(index=False))
+display(anova_df)
 
 print('\n===== 每个 tag 内 Chars 两两比较 =====')
-print(pairwise_df.query('sig != "ns"').to_string(index=False))
+display(pairwise_df.query('sig != "ns"'))
 
 # 导出
 # anova_df.to_csv('anova_by_tag.csv', index=False)
@@ -255,7 +255,7 @@ pd.set_option('display.float_format', lambda x: f'{x:.4f}')
 pd.set_option('display.max_rows', 300)
 pd.set_option('display.width', 220)
 
-print(result.to_string(index=False))
+display(result)
 
 # result.to_csv('pre_post_by_chars.csv', index=False)
 # %%

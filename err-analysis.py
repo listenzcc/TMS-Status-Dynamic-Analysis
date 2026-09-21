@@ -16,9 +16,10 @@ from util_err.tools import microsynt_err, STATES
 # N_STATES = 5
 WORD_SIZE = 5
 N_SURROGATES = 1000
-MIN_RUN = 1
+MIN_RUN = 5
 RANDOM_SEED = np.random.randint(65536)
 
+MIN_RUN = 1
 
 # %%
 # =========================================================

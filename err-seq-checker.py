@@ -1,10 +1,11 @@
 # %%
-
-from collections import Counter
 import mat73
 import numpy as np
 import argparse
 import matplotlib.pyplot as plt
+
+from tqdm.auto import tqdm
+from collections import Counter
 
 from loguru import logger
 from pathlib import Path
@@ -17,10 +18,11 @@ from util_err.tools import microsynt_err, STATES, extract_words
 # =========================================================
 # N_STATES = 5
 WORD_SIZE = 5
-N_SURROGATES = 1000
-MIN_RUN = 1
+N_SURROGATES = 1000  # 1000
+MIN_RUN = 5
 RANDOM_SEED = np.random.randint(65536)
 
+MIN_RUN = 1
 
 # %%
 # =========================================================
@@ -37,9 +39,7 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('-p', '--path', help='File path of .mat',
-                    default='./data/MSClass_labels/sham/post/sham_post_10_MSClass_labels.mat')
-parser.add_argument('-d', '--display', help='Whether to draw the matplotlib plot',
-                    action='store_true')
+                    default='./data/MSClass_labels/T120/post/T120_post_10_MSClass_labels.mat')
 args = parser.parse_args()
 logger.info(f'Start with {args=}')
 
@@ -59,14 +59,17 @@ for k, v in mat.items():
 
 # values shape is (2000, 205), (n_windows, n_trials)
 values = mat['MSClass']
-sequence = ''
-for trial in values.T:
+print(f'{values.shape=}')
+sequence = []
+for trial in tqdm(values.T):
     for v in trial:
         if v == 0:
             continue
         s = STATES[int(v-1)]
-        sequence += s
+        sequence.append(s)
 
+print(trial)
+print(f'{trial.shape=}')
 # print(f'{sequence=}')
 # print(f'{len(sequence)=}')
 
@@ -75,7 +78,7 @@ for trial in values.T:
 # 3. Compute
 # 实际序列
 
-seq = list(sequence)
+seq = [e for e in sequence]
 
 results, results_chars, surrogate, processed, word_to_class = microsynt_err(
     seq,
@@ -86,73 +89,24 @@ results, results_chars, surrogate, processed, word_to_class = microsynt_err(
     seed=RANDOM_SEED
 )
 
-print(results)
-print(''.join(seq[:80]))
-print(''.join(processed[:80]))
+for k in ['results', 'results_chars', 'surrogate']:
+    print(f'\n==== {k} ====')
+    print(eval(k))
 
+# %%
+print('\n==== seq ====')
+print(''.join(seq[:80]) + '...')
+print(''.join(processed[:80]) + '...')
 print(Counter(processed))
 
 # %%
-print([(''.join(k), v) for k, v in word_to_class.items()])
+print('\n==== Words of Classes ====')
+# print([(''.join(k), v) for k, v in word_to_class.items()])
 
 # %%
-words = extract_words(processed, n=WORD_SIZE)
+# words = extract_words(processed, n=WORD_SIZE)
 # print(words)
 # print([''.join(w) for w in words])
-
-# %%
-
-# %%
-# Plot
-# 绘制 ERR
-
-
-def _plot():
-    x = results["Class"].to_numpy()
-    y = results["ERR"].to_numpy()
-
-    lower = results["Surrogate_Lower"].to_numpy()
-    upper = results["Surrogate_Upper"].to_numpy()
-
-    plt.figure(figsize=(9, 5))
-
-    plt.bar(
-        x,
-        y,
-        color="steelblue",
-        alpha=0.8,
-        label="Real ERR"
-    )
-
-    plt.fill_between(
-        x,
-        lower,
-        upper,
-        color="gray",
-        alpha=0.3,
-        label="Surrogate 95% interval"
-    )
-
-    plt.axhline(
-        1,
-        color="black",
-        linestyle="--",
-        label="Theoretical expectation"
-    )
-
-    plt.yscale("log")
-
-    plt.xlabel("Entropy Class")
-    plt.ylabel("Entropy Representation Ratio")
-    plt.title("Microsynt Entropy Representation Ratio")
-
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-
-if args.display:
-    _plot()
 
 # %%
 

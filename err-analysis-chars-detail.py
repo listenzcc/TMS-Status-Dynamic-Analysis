@@ -1,0 +1,105 @@
+# %%
+import mat73
+import numpy as np
+import argparse
+import matplotlib.pyplot as plt
+
+from loguru import logger
+from pathlib import Path
+
+from util_err.tools_chars_detail import microsynt_err, STATES
+
+# %%
+# =========================================================
+# 1. 参数
+# =========================================================
+# N_STATES = 5
+WORD_SIZE = 5
+N_SURROGATES = 1000
+MIN_RUN = 5
+RANDOM_SEED = np.random.randint(65536)
+
+MIN_RUN = 1
+
+# %%
+# =========================================================
+# 2. Load data
+DATA_DIR = Path('./data/MSClass_labels')
+
+mat_files = sorted(DATA_DIR.rglob('*.mat'))
+logger.info(f'Found .mat files: {len(mat_files)=}')
+
+parser = argparse.ArgumentParser(
+    prog='Compute Entropy Representation Ratio',
+    description='Compute Entropy Representation Ratio',
+    epilog='Wish me a good luck'
+)
+
+parser.add_argument('-p', '--path', help='File path of .mat',
+                    default='./data/MSClass_labels/sham/post/sham_post_10_MSClass_labels.mat')
+parser.add_argument('-d', '--display', help='Whether to draw the matplotlib plot',
+                    action='store_true')
+args = parser.parse_args()
+logger.info(f'Start with {args=}')
+
+MAT_FPATH = Path(args.path)
+OUTPUT_DIR = Path('output-err', args.path).with_name(MAT_FPATH.stem)
+OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
+
+logger.info(f'{OUTPUT_DIR=}')
+
+logger.info(f'Read {MAT_FPATH=}')
+mat = mat73.loadmat(MAT_FPATH)
+for k, v in mat.items():
+    print('-'*80)
+    print(k, type(v))
+    if isinstance(v, np.ndarray):
+        print(k, v.shape, np.unique(v))
+
+# values shape is (2000, 205), (n_windows, n_trials)
+values = mat['MSClass']
+sequence = ''
+for trial in values.T:
+    for v in trial:
+        if v == 0:
+            continue
+        s = STATES[int(v-1)]
+        sequence += s
+
+# print(f'{sequence=}')
+# print(f'{len(sequence)=}')
+
+# %%
+# =========================================================
+# 3. Compute
+# 实际序列
+
+seq = list(sequence)
+
+results_chars, results_word = microsynt_err(
+    seq,
+    n=WORD_SIZE,
+    n_surrogates=N_SURROGATES,
+    min_run=MIN_RUN,
+    already_preprocessed=False,
+    seed=RANDOM_SEED
+)
+
+print(results_chars)
+print(results_word)
+
+fpath = OUTPUT_DIR / 'results-chars-detail.json'
+results_chars.to_json(fpath)
+logger.info(f'Saved into {fpath=}')
+
+fpath = OUTPUT_DIR / 'results-word-detail.json'
+results_word.to_json(fpath)
+logger.info(f'Saved into {fpath=}')
+
+# %%
+
+# %%
+
+# %%
+
+# %%

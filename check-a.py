@@ -1,55 +1,42 @@
 # %%
-import seaborn as sns
-import matplotlib.pyplot as plt
-import pandas as pd
-
-from rich import print
-from loguru import logger
-from pathlib import Path
-from collections import defaultdict
 from IPython.display import display
+import pandas as pd
+from collections import defaultdict
+from util.easy_imports import *
 
 # %%
-DATA_DIR = Path('./output-err/data/MSClass_labels')
+DATA_DIR = Path('./output-err-20260920/data/seq-data-20260920')
 
 # %%
-files = sorted(DATA_DIR.rglob('*/results.json'))
+files = sorted(DATA_DIR.rglob('*/results-[0-9]*.json'))
+
 print(files[:8])
 
 dct = defaultdict(list)
 for p in files:
-    tag = f'{p.parent.parent.parent.name}/{p.parent.parent.name}'
+    tag = p.parent.name
     dct[tag].append(p)
 
 json_files_dct = dict(dct)
-print(json_files_dct)
+for k, v in json_files_dct.items():
+    print(k, len(v), v[:2])
+# print(json_files_dct)
 
 # %%
+
 dfs = []
-for key, value in json_files_dct.items():
+for key, value in tqdm(json_files_dct.items()):
     logger.debug(f'Working with {key}')
-    for p in value:
+    for p in tqdm(value, key):
         df = pd.read_json(p)
         df['tag'] = key
         dfs.append(df)
 df = pd.concat(dfs)
 display(df)
 
+# %%
 group = df.groupby(['Class', 'tag'])
-print(group.mean(numeric_only=True))
-
-group = df.groupby('tag')
-print(group.sum(numeric_only=True))
-
-# %%
-# exit(0)
-
-
-# %%
-# fig = plt.figure(figsize=(12, 6))
-# sns.boxenplot(df, x='Class', y='ERR', hue='tag')
-# plt.show()
-
+display(group.mean(numeric_only=True))
 
 # %%
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -80,9 +67,8 @@ for i, cls in enumerate(classes):
 plt.tight_layout()
 plt.show()
 
-fpath = DATA_DIR / 'err-results.csv'
+fpath = DATA_DIR / 'err-results-20260920.csv'
 df.to_csv(fpath)
 logger.info(f'Saved into {fpath=}')
-
 
 # %%

@@ -34,6 +34,7 @@ for key, value in json_files_dct.items():
     for p in value:
         df = pd.read_json(p)
         df['tag'] = key
+        df['subject'] = p.as_posix()
         dfs.append(df)
 df_chars = pd.concat(dfs)
 display(df_chars)
@@ -44,6 +45,10 @@ display(df_chars)
 query = 'Class==1'
 df = df_chars.copy().query(query)
 display(df)
+
+fpath = DATA_DIR / f'err-results({query}).csv'
+df.to_csv(fpath)
+logger.info(f'Saved into {fpath=}')
 
 # %%
 if True:

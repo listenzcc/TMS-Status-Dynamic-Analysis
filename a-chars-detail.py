@@ -1,7 +1,7 @@
 # %%
 import argparse
 
-from util_err.tools import microsynt_err, STATES
+from util_err.tools_chars_detail import microsynt_err, STATES
 from util.easy_imports import *
 
 # %%
@@ -9,7 +9,6 @@ WORD_SIZE = 5
 N_SURROGATES = 1000
 MIN_RUN = 5
 RANDOM_SEED = np.random.randint(65536)
-
 MIN_RUN = 1
 
 # %%
@@ -47,12 +46,8 @@ logger.info(f'{len(seq)=}, {seq[:20]=}')
 
 i = 'concat'
 
-# %%
 logger.debug(f'seq len is {len(seq)}')
-results_path = OUTPUT_DIR / f'results-{i}.json'
-results_chars_path = OUTPUT_DIR / f'results-chars-{i}.json'
-
-results, results_chars, surrogate, processed, word_to_class = microsynt_err(
+results_chars, results_word = microsynt_err(
     seq,
     n=WORD_SIZE,
     n_surrogates=N_SURROGATES,
@@ -61,17 +56,19 @@ results, results_chars, surrogate, processed, word_to_class = microsynt_err(
     seed=RANDOM_SEED
 )
 
-print("预处理后序列：")
-print(len(processed), "".join(processed[:80]))
 
 print("\nEntropy Representation Ratio：")
-print(results.to_string(index=False))
+print(results_chars.to_string(index=False))
+print(results_word.to_string(index=False))
 
-results.to_json(results_path)
-logger.info(f'Saved into {results_path=}')
 
-results_chars.to_json(results_chars_path)
-logger.info(f'Saved into {results_chars_path=}')
+fpath = OUTPUT_DIR / f'results-chars-detail-{i}.json'
+results_chars.to_json(fpath)
+logger.info(f'Saved into {fpath=}')
+
+fpath = OUTPUT_DIR / f'results-word-detail-{i}.json'
+results_word.to_json(fpath)
+logger.info(f'Saved into {fpath=}')
 
 
 # %%

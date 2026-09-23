@@ -618,14 +618,18 @@ def microsynt_err(
     results = []
 
     for word, v in words_counts.items():
-        chars, cls = _mk_chars(word).split('-')
+        chs = _mk_chars(word)
+        chars, cls = chs.split('-')
         cls = int(cls)
         results.append({
             'Chars': chars,
             'Word': ''.join(word),
             'Class': cls,
             'Real_Count': v,
+            # v1
             'Real_Proportion': v / class_counts[cls],
+            # v2
+            # 'Real_Proportion': v / chars_counts[chs],
         })
 
     results_words = pd.DataFrame(results)

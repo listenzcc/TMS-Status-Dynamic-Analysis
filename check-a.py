@@ -8,13 +8,13 @@ from util.easy_imports import *
 DATA_DIR = Path('./output-err-20260920/data/seq-data-20260920')
 
 # %%
-files = sorted(DATA_DIR.rglob('*/results-[0-9]*.json'))
+files = sorted(DATA_DIR.rglob('*/results-concat.json'))
 
 print(files[:8])
 
 dct = defaultdict(list)
 for p in files:
-    tag = p.parent.name
+    tag = p.parent.name.split('_')[0]
     dct[tag].append(p)
 
 json_files_dct = dict(dct)
